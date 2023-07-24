@@ -1,0 +1,5 @@
+[package]
+name        = "platform_io"
+version     = "0.0.1"
+edition     = "2021"
+description = "Platform I/O type definitions for application"

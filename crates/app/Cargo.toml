@@ -1,0 +1,9 @@
+[package]
+name    = "app"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+
+embedded-hal  = "0.2.7"
+platform_io = {path = "../platform_io/"}
