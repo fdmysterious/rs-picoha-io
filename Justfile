@@ -5,7 +5,7 @@ is_in_docker := `test -f /.dockerenv && echo 1 || echo 0`
 
 # run_cmd is the docker run command used to launch your env.
 run_cmd := if is_in_docker == "0" {
-    'docker run -it --rm --mount type=bind,src="$(pwd)",target="/project" -w /project ' + image_name
+    'mkdir -p cache && docker run -it --rm --mount type=bind,src="$(pwd)",target="/project" --mount type=bind,src="$(pwd)/cache,target=/home/builder/.cargo" -w /project ' + image_name
 } else {""}
 
 #################

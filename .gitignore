@@ -2,3 +2,4 @@ logs/
 target/
 *.uf2
 Cargo.lock
+cache/

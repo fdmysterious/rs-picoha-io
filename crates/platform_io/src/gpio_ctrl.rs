@@ -3,27 +3,48 @@
 /// - Florian Dupeyron <florian.dupeyron@mugcat.fr>
 /// - July 2023
 
-use crate::PlatformError;
-
 /// Possible errors for GPIO controller
 #[derive(Debug)]
 pub enum GpioCtrlError {
     InitError,
     PinConfigError,
+    PinHalError,
 
-    /// Wanted pin is not in the requested direction
+
+    /// Invalid requested direction
     PinInvalidDir,
 
     /// Invalid pin index
     PinInvalidIndex,
+
+
+    /// Requested pin is not in the given dir
+    PinMismatchDir,
 }
 
 /// Current GPIO state
 pub enum PinDir {
+    Unknown,
     PullUpInput,
     PullDownInput,
     NoPullInput,
     Output
+}
+
+impl PinDir {
+    pub fn is_input_dir(&self) -> bool {
+        match self {
+            Self::PullUpInput | Self::PullDownInput | Self::NoPullInput => true,
+            _                                                           => false
+        }
+    }
+
+    pub fn is_output_dir(&self) -> bool {
+        match self {
+            Self::Output => true,
+            _            => false
+        }
+    }
 }
 
 /// Pin value
@@ -34,38 +55,20 @@ pub enum PinValue {
 
 
 /// Represents pin index
-type PinIndex = u8;
-
-
-/// Represents an output controllable pin
-pub trait PinCtrlOut {
-    /// Set output pin high
-    fn high(&mut self) -> Result<(), GpioCtrlError>;
-
-    /// Set output pin low
-    fn low(&mut self) -> Result<(), GpioCtrlError>;
-}
-
-
-/// Represents an input controllable pin
-pub trait PinCtrlIn {
-    /// Read the pin value
-    fn read(&self) -> Result<PinValue, GpioCtrlError>;
-}
+pub type PinIndex = usize;
 
 
 /// The GPIO controller controls the state of the GPIOs
 pub trait GpioCtrl {
     /// Initializes the GPIO control block
-    fn init(&self)   -> Result<(), GpioCtrlError>;
+    fn init(&mut self)   -> Result<(), GpioCtrlError>;
 
     /// Configures the requested pin as input or output
-    fn dir_set(&mut self, idx: PinIndex, dir: PinDir);
+    fn dir_set(&mut self, idx: PinIndex, dir: PinDir) -> Result<(), GpioCtrlError>;
 
-    /// Gets a reference to the reqeusted input. Returns nothing if the
-    /// pin is not configured as an output or the index is invalid.
-    fn borrow_in(&self) -> Result<&dyn PinCtrlIn, GpioCtrlError>;
+    /// Set the output value of the corresponding pin
+    fn pin_write(&mut self, idx: PinIndex, value: PinValue) -> Result<(), GpioCtrlError>;
 
-    /// Gets a mutable reference the requested output.
-    fn borrow_out(&mut self) -> Result<&mut dyn PinCtrlOut, GpioCtrlError>;
+    /// Reads the corresponding pin
+    fn pin_read(&self, idx: PinIndex) -> Result<PinValue, GpioCtrlError>;
 }
