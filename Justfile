@@ -5,7 +5,7 @@ is_in_docker := `test -f /.dockerenv && echo 1 || echo 0`
 
 # run_cmd is the docker run command used to launch your env.
 run_cmd := if is_in_docker == "0" {
-    'mkdir -p cache && docker run -it --rm --mount type=bind,src="$(pwd)",target="/project" --mount type=bind,src="$(pwd)/cache,target=/home/builder/.cargo" -w /project ' + image_name
+    'mkdir -p cache && docker run -it --rm --mount type=bind,src="$(pwd)",target="/project" --mount type=bind,src="$(pwd)/cache,target=/home/builder/.cargo/registry" -w /project ' + image_name
 } else {""}
 
 #################
@@ -20,11 +20,11 @@ check-in-docker:
 
 # Build the docker environment used in this project
 build-docker force="no":
-    #!/usr/bin/env sh
+    #!/usr/bin/env bash
     if [ {{is_in_docker}} -eq 1 ] ; then
         echo "Running in docker container, skipping image generation !"
     else
-        if [ -z `docker image ls {{image_name}} --format '1'`] || [ {{force}} = "force" ] ; then
+        if [ -z `docker image ls {{image_name}} --format '1'` ] || [ {{force}} = "force" ] ; then
             [ {{force}} = "force" ] && echo "Forcing build"
             docker buildx build --load -t {{image_name}} docker
         fi

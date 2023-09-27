@@ -127,6 +127,8 @@ impl GpioCtrl for PlatformPins {
             let mode: DynPinMode = dir.mode_to_pico_dir().ok_or(GpioCtrlError::PinInvalidDir)?;
             dpin.try_into_mode(mode).or(Err(GpioCtrlError::PinHalError))?;
 
+            self.dirs[idx] = dir;
+
             Ok(())
         }
         else {
