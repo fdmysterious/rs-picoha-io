@@ -87,27 +87,148 @@ impl PinValueToState for PinValue {
 
 //////////////////////////////////////////////////////////////////////////
 
+pub struct PlatformPinStatus {
+    pub pin: DynPin,
+    pub dir: PinDir
+}
+
+impl PlatformPinStatus {
+    fn new(pin: DynPin) -> Self {
+        Self {
+            pin: pin,
+            dir: PinDir::Unknown,
+        }
+    }
+}
+
+// TODO // Reimplement this using a magic macro to avoid this copypasta nightmare?
+pub struct PlatformPinsArray {
+    pin0: PlatformPinStatus,
+    pin1: PlatformPinStatus,
+    pin2: PlatformPinStatus,
+    pin3: PlatformPinStatus,
+    pin4: PlatformPinStatus,
+    pin5: PlatformPinStatus,
+    pin6: PlatformPinStatus,
+    pin7: PlatformPinStatus,
+    pin8: PlatformPinStatus,
+    pin9: PlatformPinStatus,
+    pin10: PlatformPinStatus,
+    pin11: PlatformPinStatus,
+    pin12: PlatformPinStatus,
+    pin13: PlatformPinStatus,
+    pin14: PlatformPinStatus,
+    pin15: PlatformPinStatus,
+    pin16: PlatformPinStatus,
+    pin17: PlatformPinStatus,
+    pin18: PlatformPinStatus,
+    pin19: PlatformPinStatus,
+    pin20: PlatformPinStatus,
+    pin21: PlatformPinStatus,
+    pin22: PlatformPinStatus,
+    pin25: PlatformPinStatus,
+}
+
+impl PlatformPinsArray {
+    fn from_pico_pins(pins: bsp::Pins) -> Self {
+        Self {
+            pin0:  PlatformPinStatus::new(pins.gpio0.into()),
+            pin1:  PlatformPinStatus::new(pins.gpio1.into()),
+            pin2:  PlatformPinStatus::new(pins.gpio2.into()),
+            pin3:  PlatformPinStatus::new(pins.gpio3.into()),
+            pin4:  PlatformPinStatus::new(pins.gpio4.into()),
+            pin5:  PlatformPinStatus::new(pins.gpio5.into()),
+            pin6:  PlatformPinStatus::new(pins.gpio6.into()),
+            pin7:  PlatformPinStatus::new(pins.gpio7.into()),
+            pin8:  PlatformPinStatus::new(pins.gpio8.into()),
+            pin9:  PlatformPinStatus::new(pins.gpio9.into()),
+            pin10: PlatformPinStatus::new(pins.gpio10.into()),
+            pin11: PlatformPinStatus::new(pins.gpio11.into()),
+            pin12: PlatformPinStatus::new(pins.gpio12.into()),
+            pin13: PlatformPinStatus::new(pins.gpio13.into()),
+            pin14: PlatformPinStatus::new(pins.gpio14.into()),
+            pin15: PlatformPinStatus::new(pins.gpio15.into()),
+            pin16: PlatformPinStatus::new(pins.gpio16.into()),
+            pin17: PlatformPinStatus::new(pins.gpio17.into()),
+            pin18: PlatformPinStatus::new(pins.gpio18.into()),
+            pin19: PlatformPinStatus::new(pins.gpio19.into()),
+            pin20: PlatformPinStatus::new(pins.gpio20.into()),
+            pin21: PlatformPinStatus::new(pins.gpio21.into()),
+            pin22: PlatformPinStatus::new(pins.gpio22.into()),
+            pin25: PlatformPinStatus::new(pins.led.into()),
+        }
+    }
+
+    fn borrow(&self, idx: PinIndex) -> Option<&PlatformPinStatus> {
+        match idx {
+            0  => Some(&self.pin0 ),
+            1  => Some(&self.pin1 ),
+            2  => Some(&self.pin2 ),
+            3  => Some(&self.pin3 ),
+            4  => Some(&self.pin4 ),
+            5  => Some(&self.pin5 ),
+            6  => Some(&self.pin6 ),
+            7  => Some(&self.pin7 ),
+            8  => Some(&self.pin8 ),
+            9  => Some(&self.pin9 ),
+            10 => Some(&self.pin10),
+            11 => Some(&self.pin11),
+            12 => Some(&self.pin12),
+            13 => Some(&self.pin13),
+            14 => Some(&self.pin14),
+            15 => Some(&self.pin15),
+            16 => Some(&self.pin16),
+            17 => Some(&self.pin17),
+            18 => Some(&self.pin18),
+            19 => Some(&self.pin19),
+            20 => Some(&self.pin20),
+            21 => Some(&self.pin21),
+            22 => Some(&self.pin22),
+            25 => Some(&self.pin25),
+            _  => None
+        }
+    }
+
+    fn borrow_mutable(&mut self, idx: PinIndex) -> Option<&mut PlatformPinStatus> {
+        match idx {
+            0  => Some(&mut self.pin0 ),
+            1  => Some(&mut self.pin1 ),
+            2  => Some(&mut self.pin2 ),
+            3  => Some(&mut self.pin3 ),
+            4  => Some(&mut self.pin4 ),
+            5  => Some(&mut self.pin5 ),
+            6  => Some(&mut self.pin6 ),
+            7  => Some(&mut self.pin7 ),
+            8  => Some(&mut self.pin8 ),
+            9  => Some(&mut self.pin9 ),
+            10 => Some(&mut self.pin10),
+            11 => Some(&mut self.pin11),
+            12 => Some(&mut self.pin12),
+            13 => Some(&mut self.pin13),
+            14 => Some(&mut self.pin14),
+            15 => Some(&mut self.pin15),
+            16 => Some(&mut self.pin16),
+            17 => Some(&mut self.pin17),
+            18 => Some(&mut self.pin18),
+            19 => Some(&mut self.pin19),
+            20 => Some(&mut self.pin20),
+            21 => Some(&mut self.pin21),
+            22 => Some(&mut self.pin22),
+            25 => Some(&mut self.pin25),
+            _  => None
+        }
+    }
+}
+
+
 pub struct PlatformPins {
-    pins: [DynPin; 10],
-    dirs: [PinDir; 10],
+    pins: PlatformPinsArray,
 }
 
 impl PlatformPins {
-    pub fn new(pins: [DynPin;10]) -> Self {
+    pub fn new(bsp_pins: bsp::Pins) -> Self {
         Self {
-            pins: pins,
-            dirs: [
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-                PinDir::Unknown,
-            ]
+            pins: PlatformPinsArray::from_pico_pins(bsp_pins),
         }
     }
 }
@@ -115,68 +236,48 @@ impl PlatformPins {
 impl GpioCtrl for PlatformPins {
     fn init(&mut self) -> Result<(), GpioCtrlError> {
         // Set default directions for pins
-        for i in 0..self.pins.len() {
-            self.dir_set(i, PinDir::PullDownInput)?;
-        }
+        //for i in 0..self.pins.len() {
+        //    self.dir_set(i, PinDir::PullDownInput)?;
+        //}
         Ok(())
     }
 
     fn dir_set(&mut self, idx: PinIndex, dir: PinDir) -> Result<(),GpioCtrlError>  {
-        if idx < self.pins.len() {
-            let dpin             = &mut self.pins[idx];
-            let mode: DynPinMode = dir.mode_to_pico_dir().ok_or(GpioCtrlError::PinInvalidDir)?;
-            dpin.try_into_mode(mode).or(Err(GpioCtrlError::PinHalError))?;
+        let mut dpin         = self.pins.borrow_mutable(idx).ok_or(GpioCtrlError::PinInvalidIndex)?;
+        let mode: DynPinMode = dir.mode_to_pico_dir().ok_or(GpioCtrlError::PinInvalidDir)?;
 
-            self.dirs[idx] = dir;
+        dpin.pin.try_into_mode(mode).or(Err(GpioCtrlError::PinHalError))?;
+        dpin.dir             = dir;
 
-            Ok(())
-        }
-        else {
-            Err(GpioCtrlError::PinInvalidIndex)
-        }
+        Ok(())
     }
 
     fn pin_write(&mut self, idx: PinIndex, value: PinValue) -> Result<(), GpioCtrlError> {
-        if idx < self.pins.len() {
-            let pdir = &self.dirs[idx];
+        let mut dpin = self.pins.borrow_mutable(idx).ok_or(GpioCtrlError::PinInvalidIndex)?;
 
-            if pdir.is_output_dir() {
-                let pdyn = &mut self.pins[idx];
-                pdyn.set_state(value.value_to_state()).or(Err(GpioCtrlError::PinHalError))?;
-                Ok(())
-            }
-
-            else {
-                Err(GpioCtrlError::PinMismatchDir)
-            }
+        if dpin.dir.is_output_dir() {
+            dpin.pin.set_state(value.value_to_state()).or(Err(GpioCtrlError::PinHalError))?;
+            Ok(())
         }
-        
+
         else {
-            Err(GpioCtrlError::PinInvalidIndex)
+            Err(GpioCtrlError::PinMismatchDir)
         }
     }
 
     fn pin_read(&self, idx: PinIndex) -> Result<PinValue, GpioCtrlError> {
-        if idx < self.pins.len() {
-            let pdir = &self.dirs[idx];
+        let dpin = self.pins.borrow(idx).ok_or(GpioCtrlError::PinInvalidIndex)?;
 
-            if pdir.is_input_dir() {
-                let pdyn = &self.pins[idx];
-
-                match pdyn.is_high() {
-                    Ok(true)  => Ok(PinValue::High),
-                    Ok(false) => Ok(PinValue::Low ),
-                    Err(_)    => Err(GpioCtrlError::PinHalError),
-                }
-            }
-
-            else {
-                Err(GpioCtrlError::PinMismatchDir)
+        if dpin.dir.is_input_dir() {
+            match dpin.pin.is_high() {
+                Ok(true)  => Ok(PinValue::High),
+                Ok(false) => Ok(PinValue::Low ),
+                Err(_)    => Err(GpioCtrlError::PinHalError),
             }
         }
 
         else {
-            Err(GpioCtrlError::PinInvalidIndex)
+            Err(GpioCtrlError::PinMismatchDir)
         }
     }
 }
@@ -184,15 +285,15 @@ impl GpioCtrl for PlatformPins {
 //////////////////////////////////////////////////////////////////////////
 
 pub struct Platform {
-    pub led: MyPlatformLed,
+    //pub led: MyPlatformLed,
     pub sleep: MyPlatformSleep,
     pub pins: PlatformPins,
 }
 
 impl PlatformData for Platform {
-    fn get_led(&mut self) -> &mut dyn PlatformLed {
-        &mut self.led
-    }
+    //fn get_led(&mut self) -> &mut dyn PlatformLed {
+    //    &mut self.led
+    //}
 
     fn get_sleep(&mut self) -> &mut dyn PlatformSleep {
         &mut self.sleep
@@ -232,26 +333,14 @@ impl Platform {
             &mut pac.RESETS,
         );
 
-        let led_pin = pins.led.into_push_pull_output();
+        //let led_pin = pins.led.into_push_pull_output();
         let delay   = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().integer());
 
-        let pins    = PlatformPins::new([
-            pins.gpio0.into(),
-            pins.gpio1.into(),
-            pins.gpio2.into(),
-            pins.gpio3.into(),
-            pins.gpio4.into(),
-            pins.gpio5.into(),
-            pins.gpio6.into(),
-            pins.gpio7.into(),
-            pins.gpio8.into(),
-            pins.gpio9.into(),
-        ]);
+        let pins    = PlatformPins::new(pins);
 
         Ok(Self {
-            led:   MyPlatformLed   { pin: led_pin },
             sleep: MyPlatformSleep { delay: delay },
-            pins: pins
+            pins: pins,
         })
     }
 }

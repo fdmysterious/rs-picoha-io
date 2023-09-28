@@ -18,7 +18,7 @@ pub trait PlatformSleep {
 }
 
 pub trait PlatformData {
-    fn get_led  (&mut self) -> &mut dyn PlatformLed;
+    //fn get_led  (&mut self) -> &mut dyn PlatformLed;
     fn get_sleep(&mut self) -> &mut dyn PlatformSleep;
     fn get_pins (&mut self) -> &mut dyn GpioCtrl;
 }
