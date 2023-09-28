@@ -185,8 +185,22 @@ impl GpioCtrl for PlatformPins {
 
 pub struct Platform {
     pub led: MyPlatformLed,
-    pub delay: MyPlatformSleep,
+    pub sleep: MyPlatformSleep,
     pub pins: PlatformPins,
+}
+
+impl PlatformData for Platform {
+    fn get_led(&mut self) -> &mut dyn PlatformLed {
+        &mut self.led
+    }
+
+    fn get_sleep(&mut self) -> &mut dyn PlatformSleep {
+        &mut self.sleep
+    }
+
+    fn get_pins(&mut self) -> &mut dyn GpioCtrl {
+        &mut self.pins
+    }
 }
 
 impl Platform {
@@ -236,7 +250,7 @@ impl Platform {
 
         Ok(Self {
             led:   MyPlatformLed   { pin: led_pin },
-            delay: MyPlatformSleep { delay: delay },
+            sleep: MyPlatformSleep { delay: delay },
             pins: pins
         })
     }

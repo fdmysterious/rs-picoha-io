@@ -16,8 +16,8 @@ fn main() -> ! {
     let mut platform = Platform::init().unwrap();
     platform.pins.init().unwrap();
 
-    app::main_init(&mut platform.led, &mut platform.delay, &mut platform.pins);
+    app::main_init(&mut platform);
     loop {
-        app::main_loop(&mut platform.led, &mut platform.delay, &mut platform.pins);
+        app::main_loop(&mut platform);
     }
 }
