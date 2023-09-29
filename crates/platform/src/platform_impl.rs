@@ -317,38 +317,42 @@ pub struct PlatformUsb<'a> {
 impl<'a> PlatformUsb<'a> {
     pub fn new(
         bus: &'a UsbBusAllocator<hal::usb::UsbBus>,
-        conf: PlatformUsbConfig<'a>,
     ) -> Self {
+
+        let serial = SerialPort::new(bus);
+
         let dev = UsbDeviceBuilder::new(
             bus,
-            UsbVidPid(conf.manufacturer_id, conf.product_id)
+            UsbVidPid(usb_config::USB_MANUFACTURER_ID, usb_config::USB_PRODUCT_ID)
         )
-            .manufacturer(conf.manufacturer_name)
-            .product(conf.product_name)
-            .serial_number(conf.serial_number)
+            .manufacturer(usb_config::USB_MANUFACTURER_NAME)
+            .product(usb_config::USB_PRODUCT_NAME)
+            .serial_number(usb_config::USB_SERIAL_NUMBER)
             .device_class(USB_CLASS_CDC)
             .build();
         
-        let serial = SerialPort::new(bus);
+
         Self {
-            dev:       dev,
+            dev: dev,
             serial: serial,
         }
+        //Self {
+        //    dev:       dev,
+        //    serial: serial,
+        //}
     }
 }
 
 //////////////////////////////////////////////////////////////////////////
 
-pub struct Platform {
-    //pub led: MyPlatformLed,
-    //pub usb_bus: UsbBusAllocator<hal::usb::UsbBus>,
-
+pub struct Platform<'a> {
     pub sleep: MyPlatformSleep,
     pub pins: PlatformPins,
-    //pub usb: PlatformUsb<'a>,
+
+    pub usb: PlatformUsb<'a>,
 }
 
-impl PlatformData for Platform {
+impl<'a> PlatformData for Platform<'a> {
     //fn get_led(&mut self) -> &mut dyn PlatformLed {
     //    &mut self.led
     //}
@@ -362,36 +366,23 @@ impl PlatformData for Platform {
     }
 }
 
-impl Platform {
-    pub fn init(board: Board) -> Result<Self, PlatformError> {
-        // ---- USB init
+impl<'a> Platform<'a> {
+    pub fn init(
+        pins: bsp::Pins,
+        delay: cortex_m::delay::Delay,
+        usb_bus: &'a UsbBusAllocator<hal::usb::UsbBus>,
+    ) -> Result<Self, PlatformError> {
 
-        //let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
-        //    pac.USBCTRL_REGS,
-        //    pac.USBCTRL_DPRAM,
-        //    clocks.usb_clock,
-        //    true,
-        //    &mut pac.RESETS,
-        //));
-
-        //let usb = PlatformUsb::new(
-        //    &usb_bus,
-        //    PlatformUsbConfig {
-        //        manufacturer_id:   usb_config::USB_MANUFACTURER_ID,
-        //        product_id:        usb_config::USB_PRODUCT_ID,
-        //        manufacturer_name: usb_config::USB_MANUFACTURER_NAME,
-        //        product_name:      usb_config::USB_PRODUCT_NAME,
-        //        serial_number:     usb_config::USB_SERIAL_NUMBER,
-        //    }
-        //);
-        //
-        let pins = PlatformPins::new(board.pins);
+        let usb = PlatformUsb::new(
+            usb_bus,
+        );
+        
+        let pins = PlatformPins::new(pins);
 
         Ok(Self {
-            //usb_bus: usb_bus,
-            sleep: MyPlatformSleep { delay: board.delay },
+            sleep: MyPlatformSleep { delay: delay },
             pins: pins,
-            //usb: usb,
+            usb: usb,
         })
     }
 }

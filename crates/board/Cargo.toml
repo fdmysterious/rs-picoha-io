@@ -13,3 +13,4 @@ embedded-hal = "0.2.7"
 embedded-time = "0.12.1"
 
 rp-pico = "0.3.0"
+usb-device = "0.2.9"

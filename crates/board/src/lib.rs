@@ -18,11 +18,13 @@ use bsp::{
     Pins,
 };
 
+use usb_device::class_prelude::UsbBusAllocator;
 
 
 pub struct Board {
     pub delay: cortex_m::delay::Delay,
     pub pins: bsp::Pins,
+    pub usb_bus: UsbBusAllocator<hal::usb::UsbBus>,
 }
 
 impl Board {
@@ -46,6 +48,16 @@ impl Board {
             .ok()
             .unwrap();
 
+        // ---- USB init
+        
+        let usb = UsbBusAllocator::new(hal::usb::UsbBus::new(
+            pac.USBCTRL_REGS,
+            pac.USBCTRL_DPRAM,
+            clocks.usb_clock,
+            true,
+            &mut pac.RESETS,
+        ));
+
 
         // ---- Peripherals init
 
@@ -61,10 +73,10 @@ impl Board {
             clocks.system_clock.freq().integer()
         );
 
-
         Self {
-            delay: delay,
-            pins: pins,
+            usb_bus: usb,
+            delay:   delay,
+            pins:    pins,
         }
     }
 }
