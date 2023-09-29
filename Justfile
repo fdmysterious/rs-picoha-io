@@ -1,52 +1,66 @@
-image_name := env_var_or_default("IMAGE_NAME", "pico-env")
+toolchain_image_name         := env_var_or_default("IMAGE_NAME", "pico-env")
+openocd_image_name := env_var_or_default("IMAGE_NAME", "openocd:alpine" )
 
 # https://stackoverflow.com/questions/23513045/how-to-check-if-a-process-is-running-inside-docker-container
 is_in_docker := `test -f /.dockerenv && echo 1 || echo 0`
 
 # run_cmd is the docker run command used to launch your env.
-run_cmd := if is_in_docker == "0" {
-    'mkdir -p cache && docker run -it --rm --mount type=bind,src="$(pwd)",target="/project" --mount type=bind,src="$(pwd)/cache,target=/home/builder/.cargo/registry" -w /project ' + image_name
+run_cmd_toolchain := if is_in_docker == "0" {
+    'mkdir -p cache && docker run -it --privileged --rm --mount type=bind,src="$(pwd)",target="/project" --mount type=bind,src="$(pwd)/cache,target=/home/builder/.cargo/registry" -w /project ' + toolchain_image_name
+} else {""}
+
+run_cmd_openocd := if is_in_docker == "0" {
+    'docker run -it --privileged --rm --mount type=bind,src="$(pwd)",target="/project" -w /project ' + openocd_image_name
 } else {""}
 
 #################
 
 # Display the prefix command used in the current context
 echo-run-cmd:
-    @echo run_cmd={{run_cmd}}
+    @echo run_cmd={{run_cmd_toolchain}}
 
 # Check if we are running in the docker container
 check-in-docker:
     @echo {{if is_in_docker == "1" {"In docker container!"} else  {"Not in docker container!"} }}
 
 # Build the docker environment used in this project
-build-docker force="no":
+docker-build-toolchain force="no":
     #!/usr/bin/env bash
     if [ {{is_in_docker}} -eq 1 ] ; then
         echo "Running in docker container, skipping image generation !"
     else
-        if [ -z `docker image ls {{image_name}} --format '1'` ] || [ {{force}} = "force" ] ; then
+        if [ -z `docker image ls {{toolchain_image_name}} --format '1'` ] || [ {{force}} = "force" ] ; then
             [ {{force}} = "force" ] && echo "Forcing build"
-            docker buildx build --load -t {{image_name}} docker
+            docker buildx build --load -t {{toolchain_image_name}} -f docker/Dockerfile-toolchain docker
         fi
     fi
 
-
+docker-build-openocd force="no":
+	#!/usr/bin/env bash
+	if [ -z `docker image ls {{openocd_image_name}} --format '1'` ] || [ {{force}} = "force" ] ; then
+		[ {{force}} = "force" ] && echo "Forcing build"
+		docker buidlx build --load -t {{openocd_image_name}} -f docker/Dockerfile-openocd docker
+	fi
 
 #################
 
 # Build the project
-build: build-docker
-    {{run_cmd}} cargo build --release
+build: docker-build-toolchain
+    {{run_cmd_toolchain}} cargo build --release
 
 # Open a bash shell in the docker container
-shell: build-docker
-    {{run_cmd}} /bin/bash
+shell: docker-build-toolchain
+    {{run_cmd_toolchain}} /bin/bash
 
 # Call the cargo command in the container
-cargo +args: build-docker
-    {{run_cmd}} cargo {{args}}
+cargo +args: docker-build-toolchain
+    {{run_cmd_toolchain}} cargo {{args}}
 	
 # Get the .uf2 file of the main app in the root folder
 get-uf2: build
     # TODO # Make this compatible outside of docker container
-    {{run_cmd}} /home/builder/.cargo/bin/elf2uf2-rs target/thumbv6m-none-eabi/release/rp-pico-platform rp-pico-platform.uf2
+    {{run_cmd_toolchain}} /home/builder/.cargo/bin/elf2uf2-rs target/thumbv6m-none-eabi/release/rp-pico-platform rp-pico-platform.uf2
+
+# Flash on target using openocd
+flash: build docker-build-openocd
+	{{run_cmd_openocd}} openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program target/thumbv6m-none-eabi/release/rp-pico-platform verify reset exit"

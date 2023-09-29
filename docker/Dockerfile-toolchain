@@ -1,4 +1,4 @@
-FROM rust:bullseye
+FROM rust:bookworm
 
 # Arguments
 ARG SERIALGID=20 # GID of group used to access serial devices
