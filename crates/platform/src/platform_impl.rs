@@ -3,11 +3,24 @@ use embedded_hal::digital::v2::OutputPin;
 use embedded_hal::digital::v2::InputPin;
 use embedded_hal::digital::v2::PinState;
 
+
+use usb_device::class_prelude::UsbBusAllocator;
+use usb_device::prelude::{
+    UsbDevice,
+    UsbDeviceBuilder,
+    UsbVidPid,
+};
+
+use usbd_serial::SerialPort;
+use usbd_serial::USB_CLASS_CDC;
+
+
 use panic_probe as _;
 
 use rp_pico as bsp;
 
 use bsp::hal::{
+    self,
     clocks::{init_clocks_and_plls, Clock},
     pac,
     sio::Sio,
@@ -28,21 +41,25 @@ use platform_io::gpio_ctrl::{
     GpioCtrl,
 };
 
+use crate::usb_config;
+
+use board::Board;
+
 //////////////////////////////////////////////////////////////////////////
 
-pub struct MyPlatformLed {
-    pin: gpio::Pin<gpio::bank0::Gpio25, gpio::PushPullOutput>
-}
-
-impl PlatformLed for MyPlatformLed {
-    fn led_on(&mut self) {
-        self.pin.set_high().unwrap();
-    }
-
-    fn led_off(&mut self) {
-        self.pin.set_low().unwrap();
-    }
-}
+//pub struct MyPlatformLed {
+//    pin: gpio::Pin<gpio::bank0::Gpio25, gpio::PushPullOutput>
+//}
+//
+//impl PlatformLed for MyPlatformLed {
+//    fn led_on(&mut self) {
+//        self.pin.set_high().unwrap();
+//    }
+//
+//    fn led_off(&mut self) {
+//        self.pin.set_low().unwrap();
+//    }
+//}
 
 pub struct MyPlatformSleep {
     delay: cortex_m::delay::Delay,
@@ -284,10 +301,51 @@ impl GpioCtrl for PlatformPins {
 
 //////////////////////////////////////////////////////////////////////////
 
+pub struct PlatformUsbConfig<'a> {
+    manufacturer_id: u16,
+    product_id: u16,
+    manufacturer_name: &'a str,
+    product_name: &'a str,
+    serial_number: &'a str,
+}
+
+pub struct PlatformUsb<'a> {
+    pub dev:    UsbDevice<'a, hal::usb::UsbBus>,
+    pub serial: SerialPort<'a, hal::usb::UsbBus>,
+}
+
+impl<'a> PlatformUsb<'a> {
+    pub fn new(
+        bus: &'a UsbBusAllocator<hal::usb::UsbBus>,
+        conf: PlatformUsbConfig<'a>,
+    ) -> Self {
+        let dev = UsbDeviceBuilder::new(
+            bus,
+            UsbVidPid(conf.manufacturer_id, conf.product_id)
+        )
+            .manufacturer(conf.manufacturer_name)
+            .product(conf.product_name)
+            .serial_number(conf.serial_number)
+            .device_class(USB_CLASS_CDC)
+            .build();
+        
+        let serial = SerialPort::new(bus);
+        Self {
+            dev:       dev,
+            serial: serial,
+        }
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////
+
 pub struct Platform {
     //pub led: MyPlatformLed,
+    //pub usb_bus: UsbBusAllocator<hal::usb::UsbBus>,
+
     pub sleep: MyPlatformSleep,
     pub pins: PlatformPins,
+    //pub usb: PlatformUsb<'a>,
 }
 
 impl PlatformData for Platform {
@@ -305,42 +363,35 @@ impl PlatformData for Platform {
 }
 
 impl Platform {
-    pub fn init() -> Result<Self, PlatformError> {
-        let mut      pac = pac::Peripherals::take().unwrap();
-        let         core = pac::CorePeripherals::take().unwrap();
+    pub fn init(board: Board) -> Result<Self, PlatformError> {
+        // ---- USB init
 
-        let mut watchdog = Watchdog::new(pac.WATCHDOG);
-        let          sio = Sio::new(pac.SIO);
+        //let usb_bus = UsbBusAllocator::new(hal::usb::UsbBus::new(
+        //    pac.USBCTRL_REGS,
+        //    pac.USBCTRL_DPRAM,
+        //    clocks.usb_clock,
+        //    true,
+        //    &mut pac.RESETS,
+        //));
 
-
-        let external_xtal_freq_hz = 12_000_000u32.Hz();
-        let clocks = init_clocks_and_plls(
-            external_xtal_freq_hz.integer(),
-            pac.XOSC,
-            pac.CLOCKS,
-            pac.PLL_SYS,
-            pac.PLL_USB,
-            &mut pac.RESETS,
-            &mut watchdog,
-        )
-            .ok()
-            .unwrap();
-
-        let pins = bsp::Pins::new(
-            pac.IO_BANK0,
-            pac.PADS_BANK0,
-            sio.gpio_bank0,
-            &mut pac.RESETS,
-        );
-
-        //let led_pin = pins.led.into_push_pull_output();
-        let delay   = cortex_m::delay::Delay::new(core.SYST, clocks.system_clock.freq().integer());
-
-        let pins    = PlatformPins::new(pins);
+        //let usb = PlatformUsb::new(
+        //    &usb_bus,
+        //    PlatformUsbConfig {
+        //        manufacturer_id:   usb_config::USB_MANUFACTURER_ID,
+        //        product_id:        usb_config::USB_PRODUCT_ID,
+        //        manufacturer_name: usb_config::USB_MANUFACTURER_NAME,
+        //        product_name:      usb_config::USB_PRODUCT_NAME,
+        //        serial_number:     usb_config::USB_SERIAL_NUMBER,
+        //    }
+        //);
+        //
+        let pins = PlatformPins::new(board.pins);
 
         Ok(Self {
-            sleep: MyPlatformSleep { delay: delay },
+            //usb_bus: usb_bus,
+            sleep: MyPlatformSleep { delay: board.delay },
             pins: pins,
+            //usb: usb,
         })
     }
 }

@@ -4,5 +4,6 @@ members  = [
     "crates/app",
     "crates/platform",
     "crates/platform_io",
-    "crates/protocols"
+    "crates/protocols",
+	"crates/board",
 ]

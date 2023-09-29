@@ -1,5 +1,5 @@
-toolchain_image_name         := env_var_or_default("IMAGE_NAME", "pico-env")
-openocd_image_name := env_var_or_default("IMAGE_NAME", "openocd:alpine" )
+toolchain_image_name := env_var_or_default("IMAGE_NAME_TOOLCHAIN", "pico-env")
+openocd_image_name   := env_var_or_default("IMAGE_NAME_OPENOCD",   "openocd:alpine" )
 
 # https://stackoverflow.com/questions/23513045/how-to-check-if-a-process-is-running-inside-docker-container
 is_in_docker := `test -f /.dockerenv && echo 1 || echo 0`
@@ -39,7 +39,7 @@ docker-build-openocd force="no":
 	#!/usr/bin/env bash
 	if [ -z `docker image ls {{openocd_image_name}} --format '1'` ] || [ {{force}} = "force" ] ; then
 		[ {{force}} = "force" ] && echo "Forcing build"
-		docker buidlx build --load -t {{openocd_image_name}} -f docker/Dockerfile-openocd docker
+		docker buildx build --load -t {{openocd_image_name}} -f docker/Dockerfile-openocd docker
 	fi
 
 #################

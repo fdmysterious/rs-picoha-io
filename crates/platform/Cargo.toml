@@ -18,8 +18,11 @@ embedded-hal = "0.2.7"
 panic-probe = "0.3.1"
 embedded-time = "0.12.1"
 
-platform_io = {path="../platform_io/"}
-app         = {path="../app"}
+platform_io    = {path="../platform_io/"}
+app            = {path="../app"}
+board          = {path="../board"}
+usb-device     = "0.2.9"
+usbd-serial    = "0.1.1"
 
 [features]
 boot2 = ["rp2040-boot2"]
