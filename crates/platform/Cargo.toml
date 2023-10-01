@@ -21,6 +21,7 @@ embedded-time = "0.12.1"
 platform_io    = {path="../platform_io/"}
 app            = {path="../app"}
 board          = {path="../board"}
+protocols      = {path="../protocols"}
 usb-device     = "0.2.9"
 usbd-serial    = "0.1.1"
 

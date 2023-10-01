@@ -9,6 +9,18 @@ use platform_io::{
     PinDir
 };
 
+use protocols::slip::{
+    Decoder,
+    Encoder,
+    SlipError,
+};
+
+
+use protocols::ha;
+
+use protocols::gpio;
+use protocols::common;
+
 pub struct App
 {
 }
@@ -20,12 +32,12 @@ impl App
         }
     }
 
-    pub fn init<P: PlatformData>(&self, platf: &mut P)
+    pub fn init<P: PlatformData>(&mut self, platf: &mut P)
     {
-        platf.get_pins().dir_set(25, PinDir::Output).unwrap();
     }
 
-    pub fn app_loop<P: PlatformData>(&self, platf: &mut P)
+    pub fn process_frame<P: PlatformData>(&mut self, platf: &mut P, frame: ha::MsgFrame) -> Result<ha::MsgFrame, ha::MsgError>
     {
+        Ok(protocols::common::Response::Good.to_frame())
     }
 }
