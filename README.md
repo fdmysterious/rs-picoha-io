@@ -1,33 +1,26 @@
-Rust rp-pico template
-=====================
+picoha: Simple Hardware Abstraction on Raspberry pico
+========================================================
 
 - Florian Dupeyron
-- June 2023
+- June - October 2023
 
-This minimal template is inspired by https://github.com/rp-rs/rp2040-project-template.
+Introduction
+------------
 
-The following elements are added:
+Picoha (pico hardware abstraction) is a set of various firmware for the raspberry pico that implements
+various basic hardware interfaces (I/Os, encoder, PWM, protocols like SPI, i2c, etc.). It is built as
+a simple, robust set of probes that can be inserted in automated test benches for embedded systems. A simple
+python library is as well provided for easy interaction with the hardware. The ultimate goal to set up a probe is:
 
-- dockerized environment for easy installation
-- just is used for various shortcuts commands
+1. Download the correct `.uf2` file and download it to your pico ;
+2. Use the python library to automate your bench.
 
-# Dependencies
+This project is inspired by the
+[`picoha-io`](https://github.com/Panduza/picoha-io) project from
+[panduza](https://panduza.github.io/panduza-doc).
 
-- docker
-- just (`cargo install just`)
 
-# Building
+Available firmwares
+-------------------
 
-Just as simple as:
-
-```c
-just build
-```
-
-# TODO
-
-- [ ] Debugging using `picoprobe`
-- [ ] Add option to `build` target to choose build type (release or debug)
-- [ ] Various improvements to the `just` file
-- [ ] Add vscode config files using devcontainer, _etc._
-- [x] Separate the application and platform initialization in two separate crates (using the `member` configuration field of the `Cargo.toml` file, see https://github.com/emilk/egui/blob/master/Cargo.toml for example)
+- `firmware/picoha-io`: Simple GPIO control.
