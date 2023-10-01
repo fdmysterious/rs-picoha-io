@@ -45,8 +45,8 @@ docker-build-openocd force="no":
 #################
 
 # Build the project
-build: docker-build-toolchain
-    {{run_cmd_toolchain}} cargo build --release
+build profile="release": docker-build-toolchain
+    {{run_cmd_toolchain}} cargo build {{ if profile == "release" {"--release"} else {""} }}
 
 # Open a bash shell in the docker container
 shell: docker-build-toolchain
@@ -57,10 +57,10 @@ cargo +args: docker-build-toolchain
     {{run_cmd_toolchain}} cargo {{args}}
 	
 # Get the .uf2 file of the main app in the root folder
-get-uf2: build
+get-uf2 profile="release": (build profile)
     # TODO # Make this compatible outside of docker container
-    {{run_cmd_toolchain}} /home/builder/.cargo/bin/elf2uf2-rs target/thumbv6m-none-eabi/release/rp-pico-platform rp-pico-platform.uf2
+    {{run_cmd_toolchain}} /home/builder/.cargo/bin/elf2uf2-rs target/thumbv6m-none-eabi/{{profile}}/rp-pico-platform rp-pico-platform-{{profile}}.uf2
 
 # Flash on target using openocd
-flash: build docker-build-openocd
-	{{run_cmd_openocd}} openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program target/thumbv6m-none-eabi/release/rp-pico-platform verify reset exit"
+flash profile : (build profile) docker-build-openocd
+	{{run_cmd_openocd}} openocd -f interface/cmsis-dap.cfg -f target/rp2040.cfg -c "adapter speed 5000" -c "program target/thumbv6m-none-eabi/{{profile}}/rp-pico-platform verify reset exit"

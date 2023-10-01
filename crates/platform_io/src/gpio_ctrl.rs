@@ -23,6 +23,7 @@ pub enum GpioCtrlError {
 }
 
 /// Current GPIO state
+#[derive(Debug,Copy,Clone)]
 pub enum PinDir {
     Unknown,
     PullUpInput,
@@ -48,6 +49,7 @@ impl PinDir {
 }
 
 /// Pin value
+#[derive(Debug,Copy,Clone)]
 pub enum PinValue {
     Low,
     High
@@ -65,6 +67,9 @@ pub trait GpioCtrl {
 
     /// Configures the requested pin as input or output
     fn dir_set(&mut self, idx: PinIndex, dir: PinDir) -> Result<(), GpioCtrlError>;
+
+    /// Gets the current direction of the requested pin
+    fn dir_get(&self, idx: PinIndex) -> Result<PinDir, GpioCtrlError>;
 
     /// Set the output value of the corresponding pin
     fn pin_write(&mut self, idx: PinIndex, value: PinValue) -> Result<(), GpioCtrlError>;

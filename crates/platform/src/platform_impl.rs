@@ -89,6 +89,23 @@ impl PinDirPico for PinDir {
     }
 }
 
+trait DynPinModeToPinDir {
+    fn from_pico_dir(x: DynPinMode) -> Self;
+}
+
+
+impl DynPinModeToPinDir for PinDir {
+    fn from_pico_dir(x: DynPinMode) -> Self {
+        match x {
+            DYN_PULL_UP_INPUT   => Self::PullUpInput,
+            DYN_PULL_DOWN_INPUT => Self::PullDownInput,
+            DYN_FLOATING_INPUT  => Self::NoPullInput,
+            DYN_READABLE_OUTPUT => Self::Output,
+            _                   => Self::Unknown,
+        }
+    }
+}
+
 trait PinValueToState {
     fn value_to_state(&self) -> PinState;
 }
@@ -267,6 +284,11 @@ impl GpioCtrl for PlatformPins {
         dpin.dir             = dir;
 
         Ok(())
+    }
+
+    fn dir_get(&self, idx: PinIndex) -> Result<PinDir, GpioCtrlError> {
+        let dpin = self.pins.borrow(idx).ok_or(GpioCtrlError::PinInvalidIndex)?;
+        Ok(dpin.dir)
     }
 
     fn pin_write(&mut self, idx: PinIndex, value: PinValue) -> Result<(), GpioCtrlError> {

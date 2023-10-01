@@ -55,8 +55,6 @@ fn main() -> ! {
 
     let mut state   = true;
 
-    platform.pins.dir_set(25, PinDir::Output);
-
     loop {
         if platform.usb.dev.poll(&mut [&mut platform.usb.serial]) {
             let mut buf = [0u8; 64];
@@ -79,7 +77,6 @@ fn main() -> ! {
                                 idx += nbytes;
 
                                 if is_end {
-                                    platform.pins.pin_write(25, match state { true => PinValue::High, false => PinValue::Low});
                                     state = !state;
 
                                     fn _process_slice(app: &mut App, platform: &mut Platform, slice: &[u8]) -> Result<ha::MsgFrame, ha::MsgError> {
