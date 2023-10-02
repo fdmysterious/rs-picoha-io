@@ -17,7 +17,7 @@ defmt-rtt     = "0.4.0"
 
 embedded-hal  = "0.2.7"
 embedded-time = "0.12.1"
-panic-probe   = "0.3.1"
+panic-probe   = { version="0.3.1", features=["print-defmt"]}
 
 
 # -- USB related crates

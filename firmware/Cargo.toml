@@ -2,4 +2,5 @@
 members  = [
 	"common/protocols",
 	"apps/picoha-io",
+	"apps/picoha-encoder",
 ]
