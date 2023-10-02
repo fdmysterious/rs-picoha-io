@@ -11,52 +11,24 @@ use crate::board::Board;
 
 //////////////////////
 
-pub struct PlatformLedPico<LedPin>
-where
-    LedPin: OutputPin
-{
-    pin: LedPin,
-}
-
-impl<LedPin: OutputPin> PlatformLedPico<LedPin>
-{
-    fn new(p: LedPin) -> Self {
-        Self {
-            pin: p,
-        }
-    }
-}
-
-impl<LedPin: OutputPin> PlatformLed for PlatformLedPico<LedPin>
-{
+impl<T: OutputPin> PlatformLed for T {
     fn led_on(&mut self) {
-        self.pin.set_high().ok();
+        self.set_high().ok();
     }
 
     fn led_off(&mut self) {
-        self.pin.set_low().ok();
+        self.set_low().ok();
     }
 }
 
 //////////////////////
 
-pub struct PlatformSleepPico {
-    delay: cortex_m::delay::Delay,
-}
-
-impl PlatformSleepPico {
-    fn new(delay: cortex_m::delay::Delay) -> Self {
-        Self {
-            delay: delay,
-        }
-    }
-}
-
-impl PlatformSleep for PlatformSleepPico {
+impl PlatformSleep for cortex_m::delay::Delay {
     fn sleep_ms(&mut self, delay_ms: u32) {
-        self.delay.delay_ms(delay_ms);
+        self.delay_ms(delay_ms);
     }
 }
+
 
 //////////////////////
 
@@ -64,8 +36,8 @@ pub struct PlatformPico<LedPin>
 where
     LedPin: OutputPin,
 {
-    led: PlatformLedPico<LedPin>,
-    sleep: PlatformSleepPico,
+    led:   LedPin,
+    sleep: cortex_m::delay::Delay,
 }
 
 impl<LedPin: OutputPin> PlatformPico<LedPin> {
@@ -74,8 +46,8 @@ impl<LedPin: OutputPin> PlatformPico<LedPin> {
         delay: cortex_m::delay::Delay,
     ) -> Self {
         Self {
-            led:   PlatformLedPico::new(led),
-            sleep: PlatformSleepPico::new(delay),
+            led:   led,
+            sleep: delay,
         }
     }
 }
