@@ -1,4 +1,5 @@
 //! From https://github.com/rp-rs/rp2040-project-template/blob/main/build.rs
+//! From https://stackoverflow.com/questions/43753491/include-git-commit-hash-as-string-into-rust-program
 
 //! This build script copies the `memory.x` file from the crate root into
 //! a directory where the linker can always find it at build time.
@@ -14,8 +15,11 @@ use std::env;
 use std::fs::File;
 use std::io::Write;
 use std::path::PathBuf;
+use std::process::Command;
 
 fn main() {
+    // ----------------------- Linker script config ------------------------- //
+
     // Put `memory.x` in our output directory and ensure it's
     // on the linker search path.
     let out = &PathBuf::from(env::var_os("OUT_DIR").unwrap());
@@ -30,5 +34,12 @@ fn main() {
     // here, we ensure the build script is only re-run when
     // `memory.x` is changed.
     println!("cargo:rerun-if-changed=sys/memory.x");
-}
 
+
+    // ----------------------- Git version hash     ------------------------- //
+
+    let output   = Command::new("git").args(&["rev-parse", "HEAD"]).output().unwrap();
+    let git_hash = String::from_utf8(output.stdout).unwrap();
+
+    println!("cargo:rustc-env=GIT_HASH={}", git_hash);
+}

@@ -1,5 +1,3 @@
-#![no_std]
-
 use cortex_m;
 use embedded_time::rate::*;
 

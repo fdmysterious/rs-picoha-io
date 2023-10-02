@@ -32,8 +32,8 @@ use bsp::hal::{
 };
 use bsp::hal::gpio::{DYN_PULL_DOWN_INPUT, DYN_PULL_UP_INPUT, DYN_FLOATING_INPUT, DYN_READABLE_OUTPUT, DynPinMode};
 
-use platform_io::*;
-use platform_io::gpio_ctrl::{
+use crate::platform_io::*;
+use crate::platform_io::gpio_ctrl::{
     GpioCtrlError,
     PinDir,
     PinValue,
@@ -41,9 +41,9 @@ use platform_io::gpio_ctrl::{
     GpioCtrl,
 };
 
-use crate::usb_config;
+use crate::platform::usb_config;
 
-use board::Board;
+use crate::board::Board;
 
 //////////////////////////////////////////////////////////////////////////
 

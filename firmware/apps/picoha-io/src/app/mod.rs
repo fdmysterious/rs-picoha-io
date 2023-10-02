@@ -1,6 +1,4 @@
-#![no_std]
-
-use platform_io::{
+use crate::platform_io::{
     PlatformData,
     PlatformLed,
     PlatformSleep,

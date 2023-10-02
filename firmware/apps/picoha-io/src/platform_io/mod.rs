@@ -1,5 +1,3 @@
-#![no_std]
-
 pub mod gpio_ctrl;
 pub use gpio_ctrl::{GpioCtrl, PinValue, PinDir};
 

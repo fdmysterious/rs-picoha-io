@@ -1,9 +1,5 @@
 [workspace]
 members  = [
-	"apps/picoha-io/crates/app",
-	"apps/picoha-io/crates/board",
-	"apps/picoha-io/crates/platform",
-	"apps/picoha-io/crates/platform_io",
-
 	"common/protocols",
+	"apps/picoha-io",
 ]

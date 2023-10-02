@@ -1,12 +1,14 @@
 #![no_std]
 #![no_main]
 
-mod usb_config;
-mod platform_impl;
+mod board;
+mod platform_io;
+mod platform;
+mod app;
+
 
 use platform_io::PlatformData;
-use platform_impl::Platform;
-
+use platform::platform_impl::Platform;
 
 use board::Board;
 use app::App;
