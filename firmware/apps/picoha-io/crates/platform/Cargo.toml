@@ -1,5 +1,5 @@
 [package]
-name = "rp-pico-platform"
+name = "picoha-io"
 version = "0.0.1"
 edition = "2021"
 
@@ -21,7 +21,7 @@ embedded-time = "0.12.1"
 platform_io    = {path="../platform_io/"}
 app            = {path="../app"}
 board          = {path="../board"}
-protocols      = {path="../protocols"}
+protocols      = {path="../../../../common/protocols"}
 usb-device     = "0.2.9"
 usbd-serial    = "0.1.1"
 

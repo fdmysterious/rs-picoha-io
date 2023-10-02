@@ -1,9 +1,9 @@
 [workspace]
-resolver = "2"
 members  = [
-    "crates/app",
-    "crates/platform",
-    "crates/platform_io",
-    "crates/protocols",
-	"crates/board",
+	"apps/picoha-io/crates/app",
+	"apps/picoha-io/crates/board",
+	"apps/picoha-io/crates/platform",
+	"apps/picoha-io/crates/platform_io",
+
+	"common/protocols",
 ]
