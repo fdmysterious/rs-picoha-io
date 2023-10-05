@@ -9,6 +9,8 @@ use defmt::*;
 use defmt_rtt   as _;
 use panic_probe as _;
 
+use embedded_hal::PwmPin;
+
 use board::Board;
 
 use rp_pico as bsp;
@@ -24,17 +26,50 @@ use platform_io::{
 
 #[entry]
 fn main() -> ! {
-    let board = Board::init();
-    let mut platf = PlatformPico::new(
-        board.pins.led.into_push_pull_output(),
-        board.delay,
-    );
+    let mut board = Board::init();
+    let mut pwms  = board.pwms;
+
+    let mut pwm  = pwms.pwm4;
+    let mut delay = board.delay;
+
+    pwm.enable();
+
+    let mut channel = pwm.channel_b;
+    channel.output_to(board.pins.pwm_out);
+
+    //board.pwms.pwm4.set_ph_correct();
+    //board.pwms.pwm4.channel_b.enable();
+    //board.pwms.pwm4.channel_b.output_to(board.pins.pwm_out);
+    //board.pwms.pwm4.channel_b.set_duty(10000);
+
+    //let mut platf = PlatformPico::new(
+    //    board.pwms.pwm4,
+    //    board.pins.led.into_push_pull_output(),
+    //    board.delay,
+    //);
+
+    const DELAY_US: u32  = 100u32;
+    const DUTY_MAX: u16  = 25000u16;
+    const DUTY_STEP: u16 = 1u16;
+
+    let mut duty    = 0u16;
+
+    //platf.get_pwm().duty_set(DUTY_MAX);
 
     loop {
-        platf.get_led().led_on();
-        platf.get_sleep().sleep_ms(100);
-        platf.get_led().led_off();
-        platf.get_sleep().sleep_ms(100);
+        duty += DUTY_STEP;
+        duty %= DUTY_MAX;
+        channel.set_duty(duty);
+        delay.sleep_us(DELAY_US);
+
+
+        //platf.get_pwm().duty_set(duty);
+        //platf.get_sleep().sleep_us(DELAY_US);
+
+        //platf.get_led().led_on();
+        //platf.get_sleep().sleep_ms(100);
+        //platf.get_led().led_off();
+        //platf.get_sleep().sleep_ms(100);
     }
 }
 

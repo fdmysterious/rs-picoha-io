@@ -1,6 +1,7 @@
 use cortex_m;
 use embedded_time::rate::*;
 use embedded_hal::digital::v2::OutputPin;
+use embedded_hal::PwmPin;
 
 use rp_pico as bsp;
 
@@ -12,14 +13,18 @@ use bsp::{
         sio::Sio,
         watchdog::Watchdog,
         gpio,
-    }
+    },
 };
 
 use usb_device::class_prelude::UsbBusAllocator;
 
 hal::bsp_pins! {
-    Gpio25 {
+    Gpio10 {
         name: led,
+    },
+
+    Gpio25 {
+        name: pwm_out,
     },
 }
 
@@ -27,6 +32,8 @@ hal::bsp_pins! {
 pub struct Board
 {
     pub pins: Pins,
+    pub pwms: hal::pwm::Slices,
+
     pub delay: cortex_m::delay::Delay,
     pub usb_bus: UsbBusAllocator<hal::usb::UsbBus>,
 }
@@ -78,8 +85,12 @@ impl Board
             clocks.system_clock.freq().to_Hz()
         );
 
+        let mut pwms = hal::pwm::Slices::new(pac.PWM, &mut pac.RESETS);
+
         Self {
             pins: pins,
+            pwms: pwms,
+
             usb_bus: usb,
             delay:   delay,
         }
