@@ -52,8 +52,11 @@ fn main() -> ! {
     
     let mut pwm = PicoDiffEncoder::new(
         board.pwms.pwm0,
+        board.pwms.pwm1,
         board.pins.enc0a_p_out,
         board.pins.enc0a_n_out,
+        board.pins.enc0b_p_out,
+        board.pins.enc0b_n_out,
     );
 
     pwm.configure();

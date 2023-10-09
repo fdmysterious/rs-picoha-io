@@ -44,44 +44,76 @@ impl<T: OutputPin> PlatformLed for T {
 //////////////////////
 
 pub struct PicoDiffEncoder<
-    SliceNum: SliceId,
+    SliceANum: SliceId,
+    SliceBNum: SliceId,
 > {
-    slice: Slice<SliceNum, pwm::FreeRunning>,
+    sliceA: Slice<SliceANum, pwm::FreeRunning>,
+    sliceB: Slice<SliceBNum, pwm::FreeRunning>,
 }
 
 impl<
-    SliceNum: SliceId,
-> PicoDiffEncoder<SliceNum> {
-    pub fn new<PinAP: AnyPin, PinAN: AnyPin>(
-        mut slice:   Slice<SliceNum, pwm::FreeRunning>,
+    SliceANum: SliceId,
+    SliceBNum: SliceId,
+> PicoDiffEncoder<SliceANum, SliceBNum> {
+    pub fn new<PinAP: AnyPin, PinAN: AnyPin, PinBP: AnyPin, PinBN: AnyPin>(
+        mut sliceA:   Slice<SliceANum, pwm::FreeRunning>,
+        mut sliceB:   Slice<SliceBNum, pwm::FreeRunning>,
+
         pin_a_p: PinAP,
         pin_a_n: PinAN,
+
+        pin_b_p: PinBP,
+        pin_b_n: PinBN,
     ) -> Self
     where
-        PinAP::Id: ValidPwmOutputPin<SliceNum, pwm::A>,
-        PinAN::Id: ValidPwmOutputPin<SliceNum, pwm::B>,
+        PinAP::Id: ValidPwmOutputPin<SliceANum, pwm::A>,
+        PinAN::Id: ValidPwmOutputPin<SliceANum, pwm::B>,
+
+        PinBP::Id: ValidPwmOutputPin<SliceBNum, pwm::A>,
+        PinBN::Id: ValidPwmOutputPin<SliceBNum, pwm::B>,
     {
-        slice.channel_a.output_to(pin_a_p);
-        slice.channel_b.output_to(pin_a_n);
+        sliceA.channel_a.output_to(pin_a_p);
+        sliceA.channel_b.output_to(pin_a_n);
+
+        sliceB.channel_a.output_to(pin_b_p);
+        sliceB.channel_b.output_to(pin_b_n);
 
         Self {
-            slice: slice,
+            sliceA: sliceA,
+            sliceB: sliceB,
         }
     }
 }
 
 impl<
-    SliceNum: SliceId
-> PlatformEncoder for PicoDiffEncoder<SliceNum> {
+    SliceANum: SliceId,
+    SliceBNum: SliceId,
+> PlatformEncoder for PicoDiffEncoder<SliceANum, SliceBNum> {
     fn configure(&mut self) {
-        self.slice.channel_b.set_inverted();
+        self.sliceA.channel_b.set_inverted();
+        self.sliceB.channel_b.set_inverted();
 
-        self.slice.channel_a.set_duty(self.slice.get_top()>>1);
-        self.slice.channel_b.set_duty(self.slice.get_top()>>1);
+        self.sliceA.channel_a.set_duty(self.sliceA.get_top()>>1);
+        self.sliceA.channel_b.set_duty(self.sliceA.get_top()>>1);
+        self.sliceB.channel_a.set_duty(self.sliceB.get_top()>>1);
+        self.sliceB.channel_b.set_duty(self.sliceB.get_top()>>1);
 
-        self.slice.channel_a.enable();
-        self.slice.channel_b.enable();
-        self.slice.enable();
+        self.sliceA.channel_a.enable();
+        self.sliceA.channel_b.enable();
+        self.sliceB.channel_a.enable();
+        self.sliceB.channel_b.enable();
+
+        //self.sliceB.set_counter(self.sliceB.get_top()>>2);
+
+        self.sliceB.set_counter(0);
+        self.sliceA.set_counter(self.sliceB.get_top()>>2);
+
+        self.sliceA.enable();
+        self.sliceB.enable();
+
+        //for i in 0..(self.sliceB.get_top()>>2) {
+        //    self.sliceB.advance_phase();
+        //}
     }
 }
 
