@@ -6,7 +6,7 @@ use embedded_hal::{
 use crate::platform_io::{
     PlatformLed,
     PlatformSleep,
-    PlatformPwm,
+    PlatformEncoder,
     PlatformData,
 };
 
@@ -14,10 +14,18 @@ use crate::board::Board;
 
 use rp_pico::hal::{
     pwm::{
+        self,
         Slice,
         SliceId,
         ValidSliceMode,
-        ChannelId
+        ChannelId,
+
+        ValidPwmOutputPin,
+    },
+
+    gpio::{
+        AnyPin,
+        PinId,
     }
 };
 
@@ -35,33 +43,45 @@ impl<T: OutputPin> PlatformLed for T {
 
 //////////////////////
 
-pub struct PicoPwm<I,M> 
-where
-    I: SliceId,
-    M: ValidSliceMode<I>
-{
-    slice: Slice<I,M>,
+pub struct PicoDiffEncoder<
+    SliceNum: SliceId,
+> {
+    slice: Slice<SliceNum, pwm::FreeRunning>,
 }
 
-impl<I,M> PicoPwm<I,M>
-where
-    I: SliceId,
-    M: ValidSliceMode<I>
-{
-    fn new(slice: Slice<I,M>) -> Self {
+impl<
+    SliceNum: SliceId,
+> PicoDiffEncoder<SliceNum> {
+    pub fn new<PinAP: AnyPin, PinAN: AnyPin>(
+        mut slice:   Slice<SliceNum, pwm::FreeRunning>,
+        pin_a_p: PinAP,
+        pin_a_n: PinAN,
+    ) -> Self
+    where
+        PinAP::Id: ValidPwmOutputPin<SliceNum, pwm::A>,
+        PinAN::Id: ValidPwmOutputPin<SliceNum, pwm::B>,
+    {
+        slice.channel_a.output_to(pin_a_p);
+        slice.channel_b.output_to(pin_a_n);
+
         Self {
-            slice: slice
+            slice: slice,
         }
     }
 }
 
-impl<I,M> PlatformPwm for PicoPwm<I,M>
-where
-    I: SliceId,
-    M: ValidSliceMode<I>,
-{
-    fn duty_set(&mut self, duty: u16) {
-        self.slice.channel_a.set_duty(duty.into());
+impl<
+    SliceNum: SliceId
+> PlatformEncoder for PicoDiffEncoder<SliceNum> {
+    fn configure(&mut self) {
+        self.slice.channel_b.set_inverted();
+
+        self.slice.channel_a.set_duty(self.slice.get_top()>>1);
+        self.slice.channel_b.set_duty(self.slice.get_top()>>1);
+
+        self.slice.channel_a.enable();
+        self.slice.channel_b.enable();
+        self.slice.enable();
     }
 }
 
@@ -79,41 +99,34 @@ impl PlatformSleep for cortex_m::delay::Delay {
 
 //////////////////////
 
-pub struct PlatformPico<LedPin, I,M>
+pub struct PlatformPico<
+    LedPin,
+>
 where
     LedPin:     OutputPin,
-    I: SliceId,
-    M: ValidSliceMode<I>,
 {
-    pwm:   PicoPwm<I,M>,
     led:   LedPin,
     sleep: cortex_m::delay::Delay,
 }
 
-impl<LedPin, I,M> PlatformPico<LedPin, I,M>
+impl<LedPin> PlatformPico<LedPin>
 where
     LedPin: OutputPin,
-    I: SliceId,
-    M: ValidSliceMode<I>
 {
     pub fn new(
-        pwm:    Slice<I,M>,
         led:    LedPin,
         delay:  cortex_m::delay::Delay,
     ) -> Self {
         Self {
-            pwm:   PicoPwm::new(pwm),
             led:   led,
             sleep: delay,
         }
     }
 }
 
-impl<LedPin, I,M> PlatformData for PlatformPico<LedPin, I,M>
+impl<LedPin> PlatformData for PlatformPico<LedPin>
 where
     LedPin: OutputPin,
-    I: SliceId,
-    M: ValidSliceMode<I>
 {
     fn get_led(&mut self) -> &mut dyn PlatformLed {
         &mut self.led
@@ -123,7 +136,4 @@ where
         &mut self.sleep
     }
 
-    fn get_pwm(&mut self) -> &mut dyn PlatformPwm {
-        &mut self.pwm
-    }
 }

@@ -25,12 +25,17 @@ use bsp::{
 use usb_device::class_prelude::UsbBusAllocator;
 
 hal::bsp_pins! {
-    Gpio10 {
-        name: led,
-    },
+    Gpio0 { name: enc0a_p_out, },
+    Gpio1 { name: enc0a_n_out, },
+    Gpio2 { name: enc0b_p_out, },
+    Gpio3 { name: enc0b_n_out, },
+    Gpio4 { name: enc1a_p_out, },
+    Gpio5 { name: enc1a_n_out, },
+    Gpio6 { name: enc1b_p_out, },
+    Gpio7 { name: enc1b_n_out, },
 
     Gpio25 {
-        name: pwm_out,
+        name: led,
     },
 }
 

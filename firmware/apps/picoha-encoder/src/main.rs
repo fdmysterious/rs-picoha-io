@@ -16,11 +16,15 @@ use board::Board;
 use rp_pico as bsp;
 use bsp::entry;
 
-use platform::PlatformPico;
+use platform::{
+    PlatformPico,
+    PicoDiffEncoder,
+};
 use platform_io::{
     PlatformLed,
     PlatformSleep,
     PlatformData,
+    PlatformEncoder,
 };
 
 
@@ -37,17 +41,24 @@ fn main() -> ! {
     //let mut channel = pwm.channel_b;
     //channel.output_to(board.pins.pwm_out);
 
-    board.pwms.pwm4.set_ph_correct();
-    board.pwms.pwm4.enable();
-    board.pwms.pwm4.channel_a.output_to(board.pins.pwm_out);
+    //board.pwms.pwm4.set_ph_correct();
+    //board.pwms.pwm4.enable();
+    //board.pwms.pwm4.channel_a.output_to(board.pins.pwm_out);
 
     //board.pwms.pwm4.set_ph_correct();
     //board.pwms.pwm4.channel_b.enable();
     //board.pwms.pwm4.channel_b.output_to(board.pins.pwm_out);
     //board.pwms.pwm4.channel_b.set_duty(10000);
+    
+    let mut pwm = PicoDiffEncoder::new(
+        board.pwms.pwm0,
+        board.pins.enc0a_p_out,
+        board.pins.enc0a_n_out,
+    );
+
+    pwm.configure();
 
     //let mut platf = PlatformPico::new(
-    //    board.pwms.pwm4,
     //    board.pins.led.into_push_pull_output(),
     //    board.delay,
     //);
