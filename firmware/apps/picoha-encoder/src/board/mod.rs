@@ -13,6 +13,12 @@ use bsp::{
         sio::Sio,
         watchdog::Watchdog,
         gpio,
+
+        pwm::{
+            Slice,
+            SliceId,
+            ChannelId,
+        }
     },
 };
 

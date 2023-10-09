@@ -27,15 +27,19 @@ use platform_io::{
 #[entry]
 fn main() -> ! {
     let mut board = Board::init();
-    let mut pwms  = board.pwms;
+    //let mut pwms  = board.pwms;
 
-    let mut pwm  = pwms.pwm4;
-    let mut delay = board.delay;
+    //let mut pwm  = pwms.pwm4;
+    //let mut delay = board.delay;
 
-    pwm.enable();
+    //pwm.enable();
 
-    let mut channel = pwm.channel_b;
-    channel.output_to(board.pins.pwm_out);
+    //let mut channel = pwm.channel_b;
+    //channel.output_to(board.pins.pwm_out);
+
+    board.pwms.pwm4.set_ph_correct();
+    board.pwms.pwm4.enable();
+    board.pwms.pwm4.channel_a.output_to(board.pins.pwm_out);
 
     //board.pwms.pwm4.set_ph_correct();
     //board.pwms.pwm4.channel_b.enable();
@@ -59,8 +63,9 @@ fn main() -> ! {
     loop {
         duty += DUTY_STEP;
         duty %= DUTY_MAX;
-        channel.set_duty(duty);
-        delay.sleep_us(DELAY_US);
+        board.pwms.pwm4.channel_b.set_duty(duty);
+        //channel.set_duty(duty);
+        board.delay.sleep_us(DELAY_US);
 
 
         //platf.get_pwm().duty_set(duty);

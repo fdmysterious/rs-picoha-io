@@ -61,7 +61,7 @@ where
     M: ValidSliceMode<I>,
 {
     fn duty_set(&mut self, duty: u16) {
-        self.slice.channel_b.set_duty(duty.into());
+        self.slice.channel_a.set_duty(duty.into());
     }
 }
 
