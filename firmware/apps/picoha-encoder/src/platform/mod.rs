@@ -3,6 +3,15 @@ use embedded_hal::{
     PwmPin,
 };
 
+use fugit::HertzU32;
+use fixed::{
+    FixedU32,
+    FixedU64,
+    types::extra::{
+        U10,
+    }
+};
+
 use crate::platform_io::{
     PlatformLed,
     PlatformSleep,
@@ -21,6 +30,10 @@ use rp_pico::hal::{
         ChannelId,
 
         ValidPwmOutputPin,
+    },
+
+    clocks::{
+        Clock,
     },
 
     gpio::{
@@ -43,19 +56,32 @@ impl<T: OutputPin> PlatformLed for T {
 
 //////////////////////
 
+const PICO_MAX_TOP: u16 = 0xFFFFu16;
+
 pub struct PicoDiffEncoder<
     SliceANum: SliceId,
     SliceBNum: SliceId,
 > {
     sliceA: Slice<SliceANum, pwm::FreeRunning>,
     sliceB: Slice<SliceBNum, pwm::FreeRunning>,
+
+    input_clk_freq: HertzU32,
 }
 
 impl<
     SliceANum: SliceId,
     SliceBNum: SliceId,
 > PicoDiffEncoder<SliceANum, SliceBNum> {
-    pub fn new<PinAP: AnyPin, PinAN: AnyPin, PinBP: AnyPin, PinBN: AnyPin>(
+    pub fn new<
+        PinAP: AnyPin,
+        PinAN: AnyPin,
+        PinBP: AnyPin,
+        PinBN: AnyPin,
+
+        Clk: Clock,
+    >(
+        clk: &Clk,
+
         mut sliceA:   Slice<SliceANum, pwm::FreeRunning>,
         mut sliceB:   Slice<SliceBNum, pwm::FreeRunning>,
 
@@ -81,6 +107,7 @@ impl<
         Self {
             sliceA: sliceA,
             sliceB: sliceB,
+            input_clk_freq: clk.freq(),
         }
     }
 }
@@ -103,7 +130,8 @@ impl<
         self.sliceB.channel_a.enable();
         self.sliceB.channel_b.enable();
 
-        //self.sliceB.set_counter(self.sliceB.get_top()>>2);
+        self.sliceA.set_top(PICO_MAX_TOP);
+        self.sliceB.set_top(PICO_MAX_TOP);
 
         self.sliceB.set_counter(0);
         self.sliceA.set_counter(self.sliceB.get_top()>>2);
@@ -114,6 +142,37 @@ impl<
         //for i in 0..(self.sliceB.get_top()>>2) {
         //    self.sliceB.advance_phase();
         //}
+    }
+
+    fn freq_set(&mut self, freq_q16: FixedU32<U10>) {
+        let in_freq: FixedU64<U10> = freq_q16.into();
+
+        let sys_freq  = FixedU64::<U10>::from_num(self.input_clk_freq.to_Hz());
+        let max_count = FixedU64::<U10>::from_num(PICO_MAX_TOP);
+
+        //self.sliceA.disable();
+        //self.sliceB.disable();
+
+        // Formula to determine frac div is: sys_freq / (input_freq * max_count)
+        if let Some(tmp) = sys_freq.checked_div(in_freq.checked_mul(max_count).unwrap_or(FixedU64::<U10>::from_num(1))) {
+            // If divisor is below limit
+            if tmp.int() <= (1<<8) {
+                let int:     u64 = tmp.int().to_bits();
+                let frac:    u64 = tmp.frac().to_bits();
+
+                //self.sliceA.set_div_int(int as u8);
+                //self.sliceA.set_div_frac((frac >> (10-4)) as u8); // convert 10bits frac to 4bits
+
+                //self.sliceB.set_div_int(int as u8);
+                //self.sliceB.set_div_frac((frac >> (10-4)) as u8); // Convert 10bits frac to 4bits
+
+                //self.sliceA.enable();
+                //self.sliceB.enable();
+            }
+
+            // TODO: Manage invalid frequency case
+        }
+        // TODO: Manage invalid frequency case
     }
 }
 

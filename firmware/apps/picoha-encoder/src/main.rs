@@ -27,6 +27,11 @@ use platform_io::{
     PlatformEncoder,
 };
 
+use fixed::{
+    FixedU32,
+    types::extra::U10
+};
+
 
 #[entry]
 fn main() -> ! {
@@ -50,7 +55,10 @@ fn main() -> ! {
     //board.pwms.pwm4.channel_b.output_to(board.pins.pwm_out);
     //board.pwms.pwm4.channel_b.set_duty(10000);
     
+    let sys_clk = board.sys_clk;
+
     let mut pwm = PicoDiffEncoder::new(
+        &sys_clk,
         board.pwms.pwm0,
         board.pwms.pwm1,
         board.pins.enc0a_p_out,
@@ -60,6 +68,7 @@ fn main() -> ! {
     );
 
     pwm.configure();
+    pwm.freq_set(FixedU32::<U10>::from_num(1000));
 
     //let mut platf = PlatformPico::new(
     //    board.pins.led.into_push_pull_output(),

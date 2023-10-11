@@ -14,6 +14,10 @@ use bsp::{
         watchdog::Watchdog,
         gpio,
 
+        clocks::{
+            SystemClock,
+        },
+
         pwm::{
             Slice,
             SliceId,
@@ -43,6 +47,8 @@ hal::bsp_pins! {
 pub struct Board
 {
     pub pins: Pins,
+    pub sys_clk: SystemClock,
+
     pub pwms: hal::pwm::Slices,
 
     pub delay: cortex_m::delay::Delay,
@@ -101,6 +107,7 @@ impl Board
         Self {
             pins: pins,
             pwms: pwms,
+            sys_clk: clocks.system_clock,
 
             usb_bus: usb,
             delay:   delay,
