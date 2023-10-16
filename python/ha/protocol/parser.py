@@ -40,6 +40,6 @@ def from_frame(frame: MsgFrame):
     cls = __CODE_DICT.get(frame.code, None)
 
     if cls is None:
-        raise KeyError(f"Unsupported code: 0x{frame.code:04X}")
+        raise KeyError(f"Unsupported code: {frame.code}")
 
     return cls.from_frame(frame)
